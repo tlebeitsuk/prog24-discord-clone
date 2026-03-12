@@ -1,12 +1,36 @@
 "use client"
 
+import { supabase } from "@/lib/supabase";
 import { SubmitEvent } from "react";
+import { redirect } from "next/navigation"
 
 export default function LoginPage() {
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
-    console.log('Form submitted')
+    const formData = new FormData(event.currentTarget);
+
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name
+        }
+      }
+    });
+
+    if (error) {
+      alert(error.message)
+    }
+
+    if (data.user) {
+      redirect("/")
+    }
   }
 
   return (
