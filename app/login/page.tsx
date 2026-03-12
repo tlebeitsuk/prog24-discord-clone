@@ -1,12 +1,32 @@
 "use client"
 
+import { supabase } from "@/lib/supabase";
 import { SubmitEvent } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
-  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault()
+  const router = useRouter();
 
-    console.log('Form submitted')
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(error.message)
+    }
+
+    if (data.user) {
+      router.push("/")
+    }
   }
   return (
     <>

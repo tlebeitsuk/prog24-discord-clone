@@ -2,9 +2,11 @@
 
 import { supabase } from "@/lib/supabase";
 import { SubmitEvent } from "react";
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -29,7 +31,7 @@ export default function LoginPage() {
     }
 
     if (data.user) {
-      redirect("/")
+      router.push("/")
     }
   }
 

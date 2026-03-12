@@ -4,11 +4,26 @@ import ServerList from "@/app/components/ServerList";
 import ChannelList from "@/app/components/ChannelList";
 import ChatSection from "@/app/components/ChatSection";
 import UserList from "@/app/components/UserList";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [showUsers, setShowUsers] = useState(false);
   const [showServerChannel, setShowServerChannel] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function getSession() {
+      const { data } = await supabase.auth.getSession();
+
+      if (!data.session) {
+        router.push("/login");
+      }
+    }
+
+    getSession();
+  }, []);
 
   return (
     <div className="flex h-screen w-screen">
