@@ -34,7 +34,7 @@ export default function UserMenu() {
       >
         <ul className="space-y-1">
           <li className="text-gray-600">{name}</li>
-          <li onClick={handleLogout} className="hover:">Log out</li>
+          <li onClick={handleLogout}>Log out</li>
         </ul>
       </div>
     </div>
