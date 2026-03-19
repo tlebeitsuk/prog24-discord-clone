@@ -42,7 +42,6 @@ export default function Home() {
           setShowServerChannel(false)
         }}
       />
-
       <div className={`${showUsers ? "flex" : "hidden"} w-76 md:flex`}>
         <UserList />
       </div>
