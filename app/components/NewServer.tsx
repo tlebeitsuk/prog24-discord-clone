@@ -13,6 +13,17 @@ export default function NewServer() {
         name: serverName
       })
     })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      console.error(data.error)
+      alert("Failed to create server")
+      return
+    }
+
+    // Reload the page to show the new server in the sidebar
+    window.location.reload()
   }
 
   return (
