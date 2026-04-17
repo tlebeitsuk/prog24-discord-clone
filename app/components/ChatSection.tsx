@@ -4,29 +4,42 @@ import { useEffect, useState } from "react";
 export default function ChatSection({ toggleUsers, toggleServers }: { toggleUsers: () => void, toggleServers: () => void }) {
 
   const [messages, setMessages] = useState<any[]>([])
-  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    async function getUser() {
-      const { data } = await supabase.auth.getUser()
+    async function getMessages() {
+      const response = await fetch("/api/messages", {
+        method: "GET",
+      })
 
-      if (data.user) {
-        setUser(data.user.user_metadata.name || data.user.email)
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error(data.error);
+        return;
       }
+
+      setMessages(data);
     }
 
-    getUser();
+    getMessages();
   }, []);
 
-  const channel = supabase.channel('room:lobby:messages', {
-    config: { private: true }, // Recommended for production
-  })
-
   useEffect(() => {
-    channel
-      .on('broadcast', { event: 'message' }, (payload: { payload: any }) => {
-        setMessages((current: any) => [...current, payload.payload])
-      })
+    supabase
+      .channel('table-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: 'channel_id=eq.6a4a96c7-d2d9-4942-83c2-ec5624d4842e'
+        },
+        (payload) => {
+          console.log(payload)
+          setMessages((current: any) => [...current, payload.new])
+        }
+      )
       .subscribe()
   }, [])
 
@@ -37,22 +50,21 @@ export default function ChatSection({ toggleUsers, toggleServers }: { toggleUser
 
     if (message.trim() === "") return
 
-    const data = {
-      id: Math.random().toString(36).substring(2, 9),
-      user: {
-        name: user
-      },
-      content: message,
-      createdAt: new Date().toISOString(),
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      body: JSON.stringify({
+        channelId: "6a4a96c7-d2d9-4942-83c2-ec5624d4842e",
+        text: message,
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      console.error(data.error)
+      alert("Failed to create server")
+      return
     }
-
-    setMessages((current) => [...current, data])
-
-    await channel.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: data,
-    });
   }
 
   return (
@@ -65,10 +77,10 @@ export default function ChatSection({ toggleUsers, toggleServers }: { toggleUser
         {messages.map((message, index) => (
           <div key={message.id} className="bg-gray-700 p-2 rounded-md">
             <p className="text-xs">
-              {new Date(message.createdAt).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(message.created_at).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}
             </p>
-            <p className="text-xs">{message.user.name}</p>
-            <p>{message.content}</p>
+            <p className="text-xs">{message.user_id}</p>
+            <p>{message.text}</p>
           </div>
         ))}
       </div>
