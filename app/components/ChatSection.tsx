@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 export default function ChatSection({ toggleUsers, toggleServers }: { toggleUsers: () => void, toggleServers: () => void }) {
 
   const [messages, setMessages] = useState<any[]>([])
+  const channelId = "6a4a96c7-d2d9-4942-83c2-ec5624d4842e"
 
   useEffect(() => {
     async function getMessages() {
-      const response = await fetch("/api/messages", {
+      const response = await fetch("/api/messages?channelId=" + channelId, {
         method: "GET",
       })
 
@@ -33,7 +34,7 @@ export default function ChatSection({ toggleUsers, toggleServers }: { toggleUser
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: 'channel_id=eq.6a4a96c7-d2d9-4942-83c2-ec5624d4842e'
+          filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
           console.log(payload)
@@ -53,7 +54,7 @@ export default function ChatSection({ toggleUsers, toggleServers }: { toggleUser
     const response = await fetch("/api/messages", {
       method: "POST",
       body: JSON.stringify({
-        channelId: "6a4a96c7-d2d9-4942-83c2-ec5624d4842e",
+        channelId: channelId,
         text: message,
       })
     })

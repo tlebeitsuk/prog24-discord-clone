@@ -32,6 +32,15 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  // Get channelId from query params
+  const { searchParams } = new URL(req.url)
+  const channelId = searchParams.get("channelId")
+
+  if (!channelId) {
+    return NextResponse.json({ error: "Missing channelId" }, { status: 400 })
+  }
+
+  // Get messages from database
   const supabase = await supabaseServer()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -41,7 +50,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { data, error } = await supabase.from("messages").select('*').eq('channel_id', '6a4a96c7-d2d9-4942-83c2-ec5624d4842e').order('created_at', { ascending: true }).limit(100)
+  const { data, error } = await supabase.from("messages").select('*').eq('channel_id', channelId).order('created_at', { ascending: true }).limit(100)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
