@@ -11,11 +11,13 @@ export default function UserMenu() {
     async function getUser() {
       const { data } = await supabase.auth.getUser()
 
-      if (data.user) {
-        setName(data.user.user_metadata.name || data.user.email)
+      if (!data.user) {
+        router.push("/login");
       }
-    }
 
+      setName(data.user.user_metadata.name || data.user.email)
+    }
+    
     getUser();
   }, []);
 

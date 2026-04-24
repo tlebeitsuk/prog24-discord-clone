@@ -1,10 +1,10 @@
+"use client"
+
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 
-export default function ChatSection({ toggleUsers, toggleServers }: { toggleUsers: () => void, toggleServers: () => void }) {
-
+export default function ChatSection({ channelId }: { channelId: string }) {
   const [messages, setMessages] = useState<any[]>([])
-  const channelId = "6a4a96c7-d2d9-4942-83c2-ec5624d4842e"
 
   useEffect(() => {
     async function getMessages() {
@@ -23,26 +23,29 @@ export default function ChatSection({ toggleUsers, toggleServers }: { toggleUser
     }
 
     getMessages();
-  }, []);
+  }, [channelId]);
 
-  useEffect(() => {
-    supabase
-      .channel('table-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `channel_id=eq.${channelId}`
-        },
-        (payload) => {
-          console.log(payload)
-          setMessages((current: any) => [...current, payload.new])
-        }
-      )
-      .subscribe()
-  }, [])
+useEffect(() => {
+  const channel = supabase
+    .channel('table-db-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `channel_id=eq.${channelId}`
+      },
+      (payload) => {
+        setMessages((current) => [...current, payload.new])
+      }
+    )
+    .subscribe()
+
+  return () => {
+    supabase.removeChannel(channel)
+  }
+}, [channelId])
 
   async function handleSendMessage(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -70,9 +73,7 @@ export default function ChatSection({ toggleUsers, toggleServers }: { toggleUser
 
   return (
     <div className="w-full flex flex-col items-center bg-gray-600 p-4 h-full">
-      <button onClick={toggleServers} className="md:hidden">Channels</button>
       <p className="text-white">Chat</p>
-      <button onClick={toggleUsers} className="md:hidden">Users</button>
 
       <div className="mt-4 space-y-1 w-full text-white">
         {messages.map((message, index) => (
